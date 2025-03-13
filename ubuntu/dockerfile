@@ -1,0 +1,41 @@
+# Usar una imagen base de Ubuntu
+FROM ubuntu:20.04
+
+# Configurar la zona horaria de manera no interactiva
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Instalar dependencias necesarias
+RUN apt-get update && \
+    apt-get install -y \
+    curl \
+    git \
+    jq \
+    sudo \
+    libicu66 \  
+    libssl1.1 \ 
+    libgssapi-krb5-2 \ 
+    zlib1g \ 
+    && rm -rf /var/lib/apt/lists/*
+
+# Crear un usuario para el runner
+RUN useradd -m github-runner && \
+    usermod -aG sudo github-runner && \
+    echo "github-runner ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
+# Cambiar al usuario github-runner
+USER github-runner
+WORKDIR /home/github-runner
+
+# Descargar y configurar el GitHub Runner
+RUN mkdir -p actions-runner && \
+    cd actions-runner && \
+    curl -o actions-runner-linux-x64-2.303.0.tar.gz -L https://github.com/actions/runner/releases/download/v2.303.0/actions-runner-linux-x64-2.303.0.tar.gz && \
+    tar xzf actions-runner-linux-x64-2.303.0.tar.gz && \
+    rm actions-runner-linux-x64-2.303.0.tar.gz
+
+# Copiar el script de inicio
+COPY --chown=github-runner:github-runner entrypoint.sh /home/github-runner/entrypoint.sh
+RUN chmod +x /home/github-runner/entrypoint.sh
+
+# Punto de entrada
+ENTRYPOINT ["/home/github-runner/entrypoint.sh"]
