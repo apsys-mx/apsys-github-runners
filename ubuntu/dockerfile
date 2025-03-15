@@ -15,6 +15,7 @@ RUN apt-get update && \
     libssl1.1 \ 
     libgssapi-krb5-2 \ 
     zlib1g \ 
+    wget \   
     && rm -rf /var/lib/apt/lists/*
 
 # Crear un usuario para el runner
